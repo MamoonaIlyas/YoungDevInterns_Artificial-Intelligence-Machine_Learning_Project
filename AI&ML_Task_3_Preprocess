@@ -1,0 +1,70 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from scipy import sparse
+import numpy as np
+
+# Load the dataset
+df = pd.read_csv(r"D:\studies\Mamoona\AI&ML_Intern\cereal.csv")
+
+# --- Identify Target Column ---
+# Replace 'rating' with your actual target column if different
+target_col = 'rating'
+X = df.drop(columns=target_col)
+y = df[target_col]
+
+# --- Separate Column Types ---
+numerical_cols = X.select_dtypes(include=['int64', 'float64']).columns.tolist()
+categorical_cols = X.select_dtypes(include=['object']).columns.tolist()
+
+# --- Pipelines ---
+
+# For numerical columns: Impute (mean) + Normalize
+num_pipeline = Pipeline([
+    ('imputer', SimpleImputer(strategy='mean')),
+    ('scaler', MinMaxScaler())
+])
+
+# For categorical columns: Impute (most frequent) + One-hot encode
+cat_pipeline = Pipeline([
+    ('imputer', SimpleImputer(strategy='most_frequent')),
+    ('encoder', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
+])
+
+
+# --- Column Transformer ---
+preprocessor = ColumnTransformer([
+    ('num', num_pipeline, numerical_cols),
+    ('cat', cat_pipeline, categorical_cols)
+])
+
+# --- Fit and Transform Features ---
+X_processed = preprocessor.fit_transform(X)
+
+# --- Create Feature Names After Encoding ---
+# Get feature names from transformers
+num_features = numerical_cols
+cat_features = list(preprocessor.named_transformers_['cat'].named_steps['encoder'].get_feature_names_out(categorical_cols))
+
+all_features = num_features + cat_features
+
+# --- Combine Preprocessed Features with Target ---
+df_processed = pd.DataFrame(X_processed, columns=all_features)
+df_processed[target_col] = y.reset_index(drop=True)
+
+# --- Save to CSV ---
+df_processed.to_csv("preprocessed_cereal.csv", index=False)
+
+print("Preprocessing Complete.")
+print("Preprocessed data saved to 'preprocessed_cereal.csv'.")
+
+# --- Optional: Split into Train/Test sets ---
+X_train, X_test, y_train, y_test = train_test_split(
+    X_processed, y, test_size=0.2, random_state=42
+)
+
+print(f"Training set shape: {X_train.shape}")
+print(f"Test set shape: {X_test.shape}")

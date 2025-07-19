@@ -1,0 +1,35 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+# Load the dataset
+file_path = r'D:\studies\Mamoona\AI&ML_Intern\cereal.csv'
+df = pd.read_csv(file_path)# Show first few rows
+print("Dataset Preview:\n", df.head())
+
+# Scatter plot using Matplotlib
+plt.figure(figsize=(8, 6))
+plt.scatter(df['sugars'], df['rating'], color='blue', edgecolors='black')
+plt.title('Scatter Plot: Sugars vs Rating')
+plt.xlabel('Sugars')
+plt.ylabel('Rating')
+plt.grid(True)
+plt.show()
+
+# Scatter plot using Seaborn
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x='calories', y='fat', data=df, color='green')
+plt.title('Scatter Plot: Calories vs Fat')
+plt.xlabel('Calories')
+plt.ylabel('Fat')
+plt.grid(True)
+plt.show()
+
+# Optional: Correlation matrix
+correlation = df[['calories', 'fat', 'sugars', 'rating']].corr()
+print("\nCorrelation Matrix:\n", correlation)
+
+# Visualize the correlation heatmap
+plt.figure(figsize=(6, 5))
+sns.heatmap(correlation, annot=True, cmap='coolwarm', fmt=".2f")
+plt.title('Correlation Heatmap')
+plt.show()
